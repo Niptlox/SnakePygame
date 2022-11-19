@@ -9,7 +9,7 @@ def randxy():
 TSIDE = 30
 WSIZE = (720, 480)
 MSIZE = WSIZE[0] // TSIDE, WSIZE[1] // TSIDE
-
+print(MSIZE)
 direction = 0
 directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 start_pos = MSIZE[0] // 2, MSIZE[1] // 2
