@@ -136,7 +136,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         apple_eated = st_pos
                         apple_add = ",".join(map(str, randxy()))
                         fps += 1
-                        step_tick = max(40, step_tick-100)
+                        step_tick = max(50, step_tick-10)
                     snake.insert(0, new_pos)
                     snake.pop(-1)
         else:

@@ -12,8 +12,8 @@ colors = ["#06B6D4", "#F97316", "#F59E0B", "#FACC15", "#84CC16", "#22C55E", "#10
 name_color = {name: color for name, color in zip(names, colors)}
 players = {}
 # apple = "-1,-1"
-apples = []
-main_apple = []
+apples = set()
+main_apple = set()
 
 sel = selectors.DefaultSelector()
 
@@ -66,15 +66,15 @@ def read(conn, mask):
             if apple_add != "0":
                 if "|" in apple_add:
                     for apple in apple_add.split("|"):
-                        main_apple.append(apple)
-                        apples.append(apple)
-                elif apple_eated in main_apple or main_apple == []:
+                        main_apple.add(apple)
+                        apples.add(apple)
+                elif apple_eated in main_apple or main_apple == set():
                     if apple_eated in main_apple:
                         main_apple.remove(apple_eated)
-                    main_apple.append(apple_add)
-                    apples.append(apple_add)
+                    main_apple.add(apple_add)
+                    apples.add(apple_add)
                 elif apple_eated == "0":
-                    apples.append(apple_add)
+                    apples.add(apple_add)
             players[conn] = (name, color, poses)
             if not int(alive):
                 players.pop(conn)
