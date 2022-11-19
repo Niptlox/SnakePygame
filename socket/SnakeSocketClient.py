@@ -5,11 +5,12 @@ import random
 import socket
 
 # HOST = "192.168.1.11"
+# PORT = 9090
 with open(os.getcwd() + "\settings", "r") as f:
-    HOST = f.readline()
-
+    HOST = f.readline().replace("\n", "")
+    server_host = f.readline().replace("\n", "")
+    PORT = int(f.readline())
 # HOST = "localhost"
-PORT = 9090
 SIZE_DATA = 1024 * 32
 
 

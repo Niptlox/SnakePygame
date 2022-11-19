@@ -1,8 +1,15 @@
+import os
 import socket
 import selectors
 
-# HOST, PORT = "localhost", 9090
-HOST, PORT = "0.0.0.0", 9090
+# pyinstaller socket\server.py --onefile -n ServerSnakeOnline
+
+# HOST = "localhost"
+# PORT = 9090
+with open(os.getcwd() + "\settings", "r") as f:
+    client_host = f.readline().replace("\n", "")
+    HOST = f.readline().replace("\n", "")
+    PORT = int(f.readline())
 MAX_CONNECTIONS = 8
 SIZE_DATA = 1024 * 32
 STR_LEN = SIZE_DATA // 8
