@@ -2,6 +2,7 @@ import pygame as pg
 import random
 import socket
 
+
 HOST = "localhost"
 PORT = 9090
 SIZE_DATA = 2048
@@ -31,6 +32,7 @@ snake = [start_pos]
 alive = True
 # apple = randxy()
 
+main_apples_count = 7
 apple_eated = "0"
 apple_add = "0"
 
@@ -55,7 +57,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     if _apples:
         apples = _apples.split("|")
     else:
-        apple_add = ",".join(map(str, randxy()))
+        apple_add = "|".join([",".join(map(str, randxy())) for i in range(main_apples_count)])
         apples = []
     start_pos = tuple(map(int, xy.split("/")))
     snake = [start_pos]

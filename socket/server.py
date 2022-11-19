@@ -1,7 +1,7 @@
 import socket
 import selectors
 
-HOST, PORT = "localhost", 9090
+HOST, PORT = "0.0.0.0", 9090
 MAX_CONNECTIONS = 8
 SIZE_DATA = 2048
 STR_LEN = SIZE_DATA // 8
@@ -12,7 +12,7 @@ name_color = {name: color for name, color in zip(names, colors)}
 players = {}
 # apple = "-1,-1"
 apples = []
-main_apple = "0"
+main_apple = []
 
 sel = selectors.DefaultSelector()
 
@@ -63,8 +63,13 @@ def read(conn, mask):
             if apple_eated != "0":
                 apples.remove(apple_eated)
             if apple_add != "0":
-                if apple_eated == main_apple or main_apple == "0":
-                    main_apple = apple_add
+                if "|" in apple_add:
+                    for apple in apple_add.split("|"):
+                        main_apple.append(apple)
+                        apples.append(apple)
+                if apple_eated in main_apple or main_apple == []:
+                    main_apple.remove(apple_eated)
+                    main_apple.append(apple_add)
                     apples.append(apple_add)
                 elif apple_eated == "0":
                     apples.append(apple_add)
