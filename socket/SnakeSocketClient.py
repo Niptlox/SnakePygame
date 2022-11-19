@@ -5,7 +5,7 @@ import socket
 HOST = "192.168.1.11"
 # HOST = "localhost"
 PORT = 9090
-SIZE_DATA = 2048*4
+SIZE_DATA = 1024*16
 
 
 def randxy():
@@ -33,14 +33,15 @@ directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 start_pos = MSIZE[0] // 2, MSIZE[1] // 2
 snake = [start_pos]
 alive = True
+immortal = True
 # apple = randxy()
 
 main_apples_count = 7
 apple_eated = "0"
 apple_add = "0"
-
+start_length = 25
 last_step_tick = 0
-step_tick = 300
+step_tick = 30
 pg.init()
 screen = pg.display.set_mode(WSIZE)
 clock = pg.time.Clock()
@@ -63,7 +64,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         apple_add = "|".join([",".join(map(str, randxy())) for i in range(main_apples_count)])
         apples = []
     start_pos = tuple(map(int, xy.split("/")))
-    snake = [start_pos]
+    snake = [start_pos]*start_length
     pg.display.set_caption("Client: " + name + f" ({color})")
     print("sanke", snake)
     send_my_data()
@@ -117,6 +118,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 direction = set_direction
                 last_step_tick = pg.time.get_ticks()
                 new_pos = snake[0][0] + directions[direction][0], snake[0][1] + directions[direction][1]
+                if pg.key.get_pressed()[pg.K_r]:
+                    new_pos = randxy()
                 if INFINITY_MAP:
                     if new_pos[0] >= MSIZE[0]: new_pos = (0, new_pos[1])
                     if new_pos[1] >= MSIZE[1]: new_pos = (new_pos[0], 0)
@@ -125,9 +128,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
                 if new_pos in snake or new_pos in all_poses or \
                         not (0 <= new_pos[0] < MSIZE[0] and 0 <= new_pos[1] < MSIZE[1]):
-                    alive = False
-                    apple_add = ",".join(map(str, new_pos))
-                    pass
+                    if not immortal:
+                        alive = False
+                        apple_add = ",".join(map(str, new_pos))
                 else:
                     st_pos = ",".join(map(str, new_pos))
                     print("apples", apples)
