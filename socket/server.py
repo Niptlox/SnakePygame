@@ -1,10 +1,10 @@
 import socket
 import selectors
 
-HOST, PORT = "localhost", 9090
-# HOST, PORT = "0.0.0.0", 9090
+# HOST, PORT = "localhost", 9090
+HOST, PORT = "0.0.0.0", 9090
 MAX_CONNECTIONS = 8
-SIZE_DATA = 2048
+SIZE_DATA = 2048*4
 STR_LEN = SIZE_DATA // 8
 
 names = ["cyan", "orange", "amber", "yellow", "lime", "green", "emerald", "teal"]
@@ -46,7 +46,7 @@ def read(conn, mask):
     global apples, main_apple
     try:
         data = conn.recv(SIZE_DATA)
-    except ConnectionResetError:
+    except ConnectionResetError or ConnectionAbortedError:
         data = b""
     if data:
 

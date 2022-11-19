@@ -2,9 +2,10 @@ import pygame as pg
 import random
 import socket
 
-HOST = "localhost"
+HOST = "192.168.1.11"
+# HOST = "localhost"
 PORT = 9090
-SIZE_DATA = 2048
+SIZE_DATA = 2048*4
 
 
 def randxy():
@@ -34,7 +35,7 @@ snake = [start_pos]
 alive = True
 # apple = randxy()
 
-main_apples_count = 3
+main_apples_count = 7
 apple_eated = "0"
 apple_add = "0"
 
@@ -126,6 +127,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         not (0 <= new_pos[0] < MSIZE[0] and 0 <= new_pos[1] < MSIZE[1]):
                     alive = False
                     apple_add = ",".join(map(str, new_pos))
+                    pass
                 else:
                     st_pos = ",".join(map(str, new_pos))
                     print("apples", apples)
@@ -134,7 +136,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         apple_eated = st_pos
                         apple_add = ",".join(map(str, randxy()))
                         fps += 1
-                        step_tick = max(90, step_tick-10)
+                        step_tick = max(40, step_tick-100)
                     snake.insert(0, new_pos)
                     snake.pop(-1)
         else:
@@ -148,6 +150,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
 
         send_my_data()
         data = sock.recv(SIZE_DATA).decode()
+        if not data:
+            print("ERROR NOT DATA")
+            continue
         i = data.find("update")
         i2 = data.find("end")
         ar_data = data[i:i2].split(";")
