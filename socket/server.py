@@ -10,8 +10,9 @@ names = ["cyan", "orange", "amber", "yellow", "lime", "green", "emerald", "teal"
 colors = ["#06B6D4", "#F97316", "#F59E0B", "#FACC15", "#84CC16", "#22C55E", "#10B981", "#14B8A6"]
 name_color = {name: color for name, color in zip(names, colors)}
 players = {}
-apple = "-1,-1"
-# apples = []
+# apple = "-1,-1"
+apples = []
+main_apple = "0"
 
 sel = selectors.DefaultSelector()
 
@@ -31,41 +32,46 @@ def accept(sock, mask):
     sel.register(conn, selectors.EVENT_READ, read)
 
 
-def get_data_players():
+def get_data_map():
     print(list(players.values()))
-    return f"{apple};" + "|".join([f"{name},{color},{poses}" for name, color, poses in players.values()]) + ";"
+    return f"{get_data_apples()};" + "|".join([f"{name},{color},{poses}" for name, color, poses in players.values()]) + ";"
 
 
 def get_data_apples():
-    return "|"
+    return "|".join([xy for xy in apples])
 
 
 def read(conn, mask):
-    global apple
+    global apples, main_apple
     try:
         data = conn.recv(SIZE_DATA)
     except ConnectionResetError:
         data = b""
     if data:
-        print("READ conn", conn, "data", data)
+
         st = data.decode()
         if st == "start":
-            # name, color, x, y, conn
+            # name, color, 'x/y'
             player = (get_free_name(), name_color[get_free_name()], str(len(players) * 2) + "/" + str(0))
-            out = ("connected;" + ";".join(player) + ";" + get_data_players()).encode()
-            print("START", out)
+            out = ("connected;" + ";".join(player) + ";" + get_data_map()).encode()
+            print("Player start. out:", out)
             conn.send(out)
             players[conn] = player
         else:
-            print(st)
-            name, color, alive, _apple, apple_eated, poses = st.split(";")[:6]
-            if int(apple_eated):
-                apple = _apple
+            print("Player", main_apple,     st)
+            name, color, alive, apple_add, apple_eated, poses = st.split(";")[:6]
+            if apple_eated != "0":
+                apples.remove(apple_eated)
+            if apple_add != "0":
+                if apple_eated == main_apple or main_apple == "0":
+                    main_apple = apple_add
+                    apples.append(apple_add)
+                elif apple_eated == "0":
+                    apples.append(apple_add)
             players[conn] = (name, color, poses)
             if not int(alive):
                 players.pop(conn)
-            out = ("update;" + get_data_players()).encode()
-            print("Player", st)
+            out = ("update;" + get_data_map()+"end").encode()
             conn.send(out)
             print(out)
             # for conn, player in players.items():
@@ -74,7 +80,8 @@ def read(conn, mask):
 
     else:
         print("Close conn", conn)
-        players.pop(conn)
+        if conn in players:
+            players.pop(conn)
         sel.unregister(conn)
         conn.close()
 

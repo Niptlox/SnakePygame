@@ -13,7 +13,7 @@ def randxy():
 
 def send_my_data():
     poses = "*".join([f"{x}/{y}" for x, y in snake])
-    out = f"{name};{color};{int(alive)};{apple[0]},{apple[1]};{int(apple_eated)};{poses};".encode()
+    out = f"{name};{color};{int(alive)};{apple_add};{apple_eated};{poses};".encode()
     # print("SEND", out)
     sock.send(out)
 
@@ -29,8 +29,11 @@ directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 start_pos = MSIZE[0] // 2, MSIZE[1] // 2
 snake = [start_pos]
 alive = True
-apple = randxy()
-apple_eated = True
+# apple = randxy()
+
+apple_eated = "0"
+apple_add = "0"
+
 last_step_tick = 0
 step_tick = 300
 pg.init()
@@ -48,10 +51,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     data = sock.recv(SIZE_DATA)
     data_lst = data.decode().split(";")[:-1]
     print("init", data_lst)
-    _, name, color, xy, _apple, _ = data_lst
-    apple = list(map(int, _apple.split(",")))
-    if apple[0] == -1:
-        apple = randxy()
+    _, name, color, xy, _apples, _players = data_lst
+    if _apples:
+        apples = _apples.split("|")
+    else:
+        apple_add = ",".join(map(str, randxy()))
+        apples = []
     start_pos = tuple(map(int, xy.split("/")))
     snake = [start_pos]
     pg.display.set_caption("Client: " + name + f" ({color})")
@@ -81,12 +86,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     if event.key == pg.K_SPACE:
                         direction = 0
                         snake = [(MSIZE[0] // 2, MSIZE[1] // 2)]
-                        apple = randxy()
+                        # apple = randxy()
                         alive = True
                         fps = 4
                         step_tick = 300
-
-        pg.draw.rect(screen, "red", (apple[0] * TSIDE, apple[1] * TSIDE, TSIDE, TSIDE))
+        print(apples)
+        for apple in apples:
+            ax, ay = map(int, apple.split(","))
+            pg.draw.rect(screen, "red", (ax * TSIDE, ay * TSIDE, TSIDE, TSIDE))
         [pg.draw.rect(screen, color, (x * TSIDE, y * TSIDE, TSIDE - 1, TSIDE - 1)) for x, y in snake]
         # print("players", players)
         all_poses = []
@@ -110,15 +117,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     if new_pos[0] < 0: new_pos = (MSIZE[0] - 1, new_pos[1])
                     if new_pos[1] < 0: new_pos = (new_pos[0], MSIZE[1] - 1)
 
-                if new_pos in snake or new_pos in all_poses:
+                if new_pos in snake or new_pos in all_poses or \
+                        not (0 <= new_pos[0] < MSIZE[0] and 0 <= new_pos[1] < MSIZE[1]):
                     alive = False
-                elif not (0 <= new_pos[0] < MSIZE[0] and 0 <= new_pos[1] < MSIZE[1]):
-                    alive = False
+                    apple_add = ",".join(map(str, new_pos))
                 else:
-                    if new_pos == apple:
+                    st_pos = ",".join(map(str, new_pos))
+                    if st_pos in apples:
                         snake.append((0, 0))
-                        apple = randxy()
-                        apple_eated = True
+                        apple_eated = st_pos
+                        apple_add = ",".join(map(str, randxy()))
                         fps += 1
                         step_tick = max(90, step_tick-10)
                     snake.insert(0, new_pos)
@@ -135,10 +143,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         send_my_data()
         data = sock.recv(SIZE_DATA).decode()
         i = data.find("update")
-        i2 = data.find("update", i + 1)
-        print("update:", data[i:i2], "****")
-        apple = tuple(map(int, data[i:i2].split(";")[1].split(",")))
-        if data[i:i2].split(";")[2]:
-            players = [pl.split(",") for pl in data[i:i2].split(";")[2].split("|")]
+        i2 = data.find("end")
+        ar_data = data[i:i2].split(";")
+        print("update:", ar_data, "****")
+        apples = ar_data[1].split("|") if ar_data[1] else []
+        if ar_data[2]:
+            players = [pl.split(",") for pl in ar_data[2].split("|")]
         else: players = []
-        apple_eated = False
+        apple_eated = "0"
+        apple_add = "0"
