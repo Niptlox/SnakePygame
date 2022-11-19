@@ -1,7 +1,8 @@
 import socket
 import selectors
 
-HOST, PORT = "0.0.0.0", 9090
+HOST, PORT = "localhost", 9090
+# HOST, PORT = "0.0.0.0", 9090
 MAX_CONNECTIONS = 8
 SIZE_DATA = 2048
 STR_LEN = SIZE_DATA // 8
@@ -67,8 +68,9 @@ def read(conn, mask):
                     for apple in apple_add.split("|"):
                         main_apple.append(apple)
                         apples.append(apple)
-                if apple_eated in main_apple or main_apple == []:
-                    main_apple.remove(apple_eated)
+                elif apple_eated in main_apple or main_apple == []:
+                    if apple_eated in main_apple:
+                        main_apple.remove(apple_eated)
                     main_apple.append(apple_add)
                     apples.append(apple_add)
                 elif apple_eated == "0":

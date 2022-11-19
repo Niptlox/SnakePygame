@@ -2,7 +2,6 @@ import pygame as pg
 import random
 import socket
 
-
 HOST = "localhost"
 PORT = 9090
 SIZE_DATA = 2048
@@ -13,15 +12,18 @@ def randxy():
 
 
 def send_my_data():
+    global apple_eated, apple_add
     poses = "*".join([f"{x}/{y}" for x, y in snake])
     out = f"{name};{color};{int(alive)};{apple_add};{apple_eated};{poses};".encode()
     # print("SEND", out)
     sock.send(out)
+    apple_eated = "0"
+    apple_add = "0"
 
 
 INFINITY_MAP = True
 TSIDE = 30
-WSIZE = (720, 480)
+WSIZE = (990, 720)
 MSIZE = WSIZE[0] // TSIDE, WSIZE[1] // TSIDE
 print(MSIZE)
 direction = 0
@@ -32,7 +34,7 @@ snake = [start_pos]
 alive = True
 # apple = randxy()
 
-main_apples_count = 7
+main_apples_count = 3
 apple_eated = "0"
 apple_add = "0"
 
@@ -64,6 +66,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     pg.display.set_caption("Client: " + name + f" ({color})")
     print("sanke", snake)
     send_my_data()
+
     data = sock.recv(SIZE_DATA).decode()
     players = []
     running = True
@@ -125,6 +128,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     apple_add = ",".join(map(str, new_pos))
                 else:
                     st_pos = ",".join(map(str, new_pos))
+                    print("apples", apples)
                     if st_pos in apples:
                         snake.append((0, 0))
                         apple_eated = st_pos
@@ -152,5 +156,3 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         if ar_data[2]:
             players = [pl.split(",") for pl in ar_data[2].split("|")]
         else: players = []
-        apple_eated = "0"
-        apple_add = "0"
