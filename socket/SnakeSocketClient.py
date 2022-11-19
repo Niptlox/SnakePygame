@@ -5,7 +5,7 @@ import socket
 HOST = "192.168.1.11"
 # HOST = "localhost"
 PORT = 9090
-SIZE_DATA = 1024*16
+SIZE_DATA = 1024*32
 
 
 def randxy():
@@ -41,7 +41,7 @@ main_apples_count = 7
 apple_eated = "0"
 apple_add = "0"
 last_step_tick = 0
-start_tick = 100
+start_tick = 150
 step_tick = start_tick
 pg.init()
 screen = pg.display.set_mode(WSIZE)
@@ -51,6 +51,8 @@ fps = 4
 font_end = pg.font.SysFont("Arial", 50)
 font_2 = pg.font.SysFont("Arial", 20)
 font_score = pg.font.SysFont("Arial", 25)
+font_board = pg.font.SysFont("Arial", 18)
+font_myboard = pg.font.SysFont("Arial", 18, bold=True)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.connect((HOST, PORT))
@@ -105,14 +107,25 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         [pg.draw.rect(screen, color, (x * TSIDE, y * TSIDE, TSIDE - 1, TSIDE - 1)) for x, y in snake]
         # print("players", players)
         all_poses = []
+
+        scores = []
         for player in players:
+            player_poses = [tuple(map(int, p.split("/"))) for p in player[2].split("*")]
+            scores.append((len(player_poses), player[0], player[1]))
             if player[0] == name:
                 continue
-            player_poses = [tuple(map(int, p.split("/"))) for p in player[2].split("*")]
             all_poses += player_poses
             [pg.draw.rect(screen, player[1], (int(x) * TSIDE, int(y) * TSIDE, TSIDE - 1, TSIDE - 1)) for x, y in
              player_poses]
-
+        tx, ty = WSIZE[0]-150, 5
+        screen.blit(font_2.render(f"Dashboard", True, "white"), (tx, ty))
+        ty += 22
+        for pscore, pname, pcolor in sorted(scores, reverse=True):
+            tfont = font_board
+            if pname == name:
+                tfont = font_myboard
+            screen.blit(tfont.render(f"{pname}: {pscore}", True, pcolor), (tx, ty))
+            ty += 20
         if alive:
             # print(pg.time.get_ticks())
             if last_step_tick + step_tick < pg.time.get_ticks():

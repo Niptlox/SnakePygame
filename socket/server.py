@@ -4,7 +4,7 @@ import selectors
 # HOST, PORT = "localhost", 9090
 HOST, PORT = "0.0.0.0", 9090
 MAX_CONNECTIONS = 8
-SIZE_DATA = 1024*16
+SIZE_DATA = 1024*32
 STR_LEN = SIZE_DATA // 8
 
 names = ["cyan", "orange", "amber", "yellow", "lime", "green", "emerald", "teal"]
