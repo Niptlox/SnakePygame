@@ -33,15 +33,16 @@ directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 start_pos = MSIZE[0] // 2, MSIZE[1] // 2
 snake = [start_pos]
 alive = True
-immortal = True
+immortal = False
+start_length = 1
 # apple = randxy()
 
 main_apples_count = 7
 apple_eated = "0"
 apple_add = "0"
-start_length = 25
 last_step_tick = 0
-step_tick = 30
+start_tick = 100
+step_tick = start_tick
 pg.init()
 screen = pg.display.set_mode(WSIZE)
 clock = pg.time.Clock()
@@ -96,7 +97,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         # apple = randxy()
                         alive = True
                         fps = 4
-                        step_tick = 300
+                        step_tick = start_tick
         print(apples)
         for apple in apples:
             ax, ay = map(int, apple.split(","))
