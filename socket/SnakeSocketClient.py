@@ -1,12 +1,20 @@
+import os
+
 import pygame as pg
 import random
 import socket
 
-HOST = "192.168.1.11"
+# HOST = "192.168.1.11"
+with open(os.getcwd() + "\settings", "r") as f:
+    HOST = f.readline()
+
 # HOST = "localhost"
 PORT = 9090
-SIZE_DATA = 1024*32
+SIZE_DATA = 1024 * 32
 
+
+# SnakeSocketClient.py
+# pyinstaller socket\SnakeSocketClient.py --noconsole --onefile -n SnakeOnline
 
 def randxy():
     return random.randint(0, MSIZE[0] - 1), random.randint(0, MSIZE[1] - 1)
@@ -37,11 +45,11 @@ immortal = False
 start_length = 1
 # apple = randxy()
 
-main_apples_count = 7
+main_apples_count = 5
 apple_eated = "0"
 apple_add = "0"
 last_step_tick = 0
-start_tick = 150
+start_tick = 250
 step_tick = start_tick
 pg.init()
 screen = pg.display.set_mode(WSIZE)
@@ -67,7 +75,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         apple_add = "|".join([",".join(map(str, randxy())) for i in range(main_apples_count)])
         apples = []
     start_pos = tuple(map(int, xy.split("/")))
-    snake = [start_pos]*start_length
+    snake = [start_pos] * start_length
     pg.display.set_caption("Client: " + name + f" ({color})")
     print("sanke", snake)
     send_my_data()
@@ -117,7 +125,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             all_poses += player_poses
             [pg.draw.rect(screen, player[1], (int(x) * TSIDE, int(y) * TSIDE, TSIDE - 1, TSIDE - 1)) for x, y in
              player_poses]
-        tx, ty = WSIZE[0]-150, 5
+        tx, ty = WSIZE[0] - 150, 5
         screen.blit(font_2.render(f"Dashboard", True, "white"), (tx, ty))
         ty += 22
         for pscore, pname, pcolor in sorted(scores, reverse=True):
@@ -153,7 +161,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         apple_eated = st_pos
                         apple_add = ",".join(map(str, randxy()))
                         fps += 1
-                        step_tick = max(50, step_tick-10)
+                        step_tick = max(50, step_tick - 10)
                     snake.insert(0, new_pos)
                     snake.pop(-1)
         else:
@@ -177,4 +185,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         apples = ar_data[1].split("|") if ar_data[1] else []
         if ar_data[2]:
             players = [pl.split(",") for pl in ar_data[2].split("|")]
-        else: players = []
+        else:
+            players = []

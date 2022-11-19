@@ -4,11 +4,12 @@ import selectors
 # HOST, PORT = "localhost", 9090
 HOST, PORT = "0.0.0.0", 9090
 MAX_CONNECTIONS = 8
-SIZE_DATA = 1024*32
+SIZE_DATA = 1024 * 32
 STR_LEN = SIZE_DATA // 8
 
 names = ["cyan", "orange", "amber", "yellow", "lime", "green", "emerald", "teal"]
 colors = ["#06B6D4", "#F97316", "#F59E0B", "#FACC15", "#84CC16", "#22C55E", "#10B981", "#14B8A6"]
+busy_names = {}
 name_color = {name: color for name, color in zip(names, colors)}
 players = {}
 # apple = "-1,-1"
@@ -19,9 +20,10 @@ sel = selectors.DefaultSelector()
 
 
 def get_free_name():
-    busy_name = {player[0] for player in players.values()}
+    # busy_name = {player[0] for player in players.values()}
+    _busy_names = set(busy_names.values())
     for name in names:
-        if name not in busy_name:
+        if name not in _busy_names:
             return name
     return "noname"
 
@@ -35,7 +37,8 @@ def accept(sock, mask):
 
 def get_data_map():
     print(list(players.values()))
-    return f"{get_data_apples()};" + "|".join([f"{name},{color},{poses}" for name, color, poses in players.values()]) + ";"
+    return f"{get_data_apples()};" + "|".join(
+        [f"{name},{color},{poses}" for name, color, poses in players.values()]) + ";"
 
 
 def get_data_apples():
@@ -57,9 +60,10 @@ def read(conn, mask):
             out = ("connected;" + ";".join(player) + ";" + get_data_map()).encode()
             print("Player start. out:", out)
             conn.send(out)
+            busy_names[conn] = player[0]
             players[conn] = player
         else:
-            print("Player", main_apple,     st)
+            print("Player", main_apple, st)
             name, color, alive, apple_add, apple_eated, poses = st.split(";")[:6]
             if apple_eated != "0":
                 apples.remove(apple_eated)
@@ -78,7 +82,7 @@ def read(conn, mask):
             players[conn] = (name, color, poses)
             if not int(alive):
                 players.pop(conn)
-            out = ("update;" + get_data_map()+"end").encode()
+            out = ("update;" + get_data_map() + "end").encode()
             conn.send(out)
             print(out)
             # for conn, player in players.items():
@@ -87,8 +91,11 @@ def read(conn, mask):
 
     else:
         print("Close conn", conn)
+
         if conn in players:
             players.pop(conn)
+        if conn in busy_names:
+            busy_names.pop(conn)
         sel.unregister(conn)
         conn.close()
 
