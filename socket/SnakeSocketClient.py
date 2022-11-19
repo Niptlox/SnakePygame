@@ -10,6 +10,8 @@ with open(os.getcwd() + "\settings", "r") as f:
     HOST = f.readline().replace("\n", "")
     server_host = f.readline().replace("\n", "")
     PORT = int(f.readline())
+    wsize = tuple(map(int, f.readline().split(",")))
+    flags = f.readline()
 # HOST = "localhost"
 SIZE_DATA = 1024 * 32
 
@@ -33,7 +35,7 @@ def send_my_data():
 
 INFINITY_MAP = True
 TSIDE = 30
-WSIZE = (990, 720)
+WSIZE = wsize
 MSIZE = WSIZE[0] // TSIDE, WSIZE[1] // TSIDE
 print(MSIZE)
 direction = 0
@@ -42,15 +44,15 @@ directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
 start_pos = MSIZE[0] // 2, MSIZE[1] // 2
 snake = [start_pos]
 alive = True
-immortal = False
-start_length = 1
+immortal = "i" in flags
+start_length = 20 if "l" in flags else 1
 # apple = randxy()
 
 main_apples_count = 5
 apple_eated = "0"
 apple_add = "0"
 last_step_tick = 0
-start_tick = 250
+start_tick = 50 if "s" in flags else 250
 step_tick = start_tick
 pg.init()
 screen = pg.display.set_mode(WSIZE)

@@ -10,6 +10,8 @@ with open(os.getcwd() + "\settings", "r") as f:
     client_host = f.readline().replace("\n", "")
     HOST = f.readline().replace("\n", "")
     PORT = int(f.readline())
+    wsize = tuple(map(int, f.readline().split(",")))
+    flags = f.readline()
 MAX_CONNECTIONS = 8
 SIZE_DATA = 1024 * 32
 STR_LEN = SIZE_DATA // 8
