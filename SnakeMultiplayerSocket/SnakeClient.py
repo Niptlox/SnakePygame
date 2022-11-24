@@ -56,10 +56,14 @@ def start_menu_loop():
                 running = False
 
 
-def randxy_st():
+def randxy_st(toint=False):
     pos = f"{random.randint(0, MSIZE[0] - 1)},{random.randint(0, MSIZE[1] - 1)}"
-    while pos in apples or pos in stones:
+    cx, cy = MSIZE[0] // 2, MSIZE[1] // 2
+    ceneters = ((cx, cy),)
+    while pos in apples or pos in stones or pos in ceneters:
         pos = f"{random.randint(0, MSIZE[0] - 1)},{random.randint(0, MSIZE[1] - 1)}"
+    if toint:
+        return tuple(map(int, pos.split(",")))
     return pos
 
 
@@ -76,28 +80,24 @@ def send_my_data():
 
 def draw_help():
     x, y = 7, WSIZE[1] - 100
-    pg.draw.rect(screen, "red", (1+x, y+1, TSIDE-4, TSIDE-4))
-    screen.blit(font_data.render("- Apple", True, "white"), (x+TSIDE + 5, y+0))
+    pg.draw.rect(screen, "red", (1 + x, y + 1, TSIDE - 4, TSIDE - 4))
+    screen.blit(font_data.render("- Apple", True, "white"), (x + TSIDE + 5, y + 0))
     y += TSIDE + 2
-    pg.draw.rect(screen, "purple", (1+x, 1+y, TSIDE-4, TSIDE-4))
-    screen.blit(font_data.render("- Teleport", True, "white"), (x+TSIDE + 5, y+0))
+    pg.draw.rect(screen, "purple", (1 + x, 1 + y, TSIDE - 4, TSIDE - 4))
+    screen.blit(font_data.render("- Teleport", True, "white"), (x + TSIDE + 5, y + 0))
     y += TSIDE + 2
-    pg.draw.rect(screen, "gray", (1+x, 1+y, TSIDE-4, TSIDE-4))
-    screen.blit(font_data.render("- Stone", True, "white"), (x+TSIDE + 5, y+0))
+    pg.draw.rect(screen, "gray", (1 + x, 1 + y, TSIDE - 4, TSIDE - 4))
+    screen.blit(font_data.render("- Stone", True, "white"), (x + TSIDE + 5, y + 0))
 
 
 SMOOTH_CAMERA = True
 INFINITY_MAP = True
 snake_teleported = False
 TSIDE = 30
-MSIZE = WSIZE[0] // TSIDE * 2, WSIZE[1] // TSIDE * 2
-SMSIZE = MSIZE[0] * TSIDE, MSIZE[1] * TSIDE
-print(MSIZE)
+
 direction = 0
 set_direction = direction
 directions = [(1, 0), (0, 1), (-1, 0), (0, -1)]
-start_pos = MSIZE[0] // 2, MSIZE[1] // 2
-snake = [start_pos]
 alive = True
 immortal = "i" in flags
 start_length = 20 if "l" in flags else 1
@@ -127,7 +127,21 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     data = sock.recv(SIZE_DATA)
     data_lst = data.decode().split(";")[:-1]
     print("init", data_lst)
-    _, name, color, xy, _apples, _stones, _players = data_lst
+    _, name, color, xy, _msize, _apples, _stones, _players = data_lst
+    if _msize == "0":
+        MSIZE = WSIZE[0] // TSIDE * 2, WSIZE[1] // TSIDE * 2
+        sock.send(("MSIZE;" + ",".join(map(str, MSIZE))).encode())
+    else:
+        MSIZE = tuple(map(int, _msize.split(",")))
+
+    SMSIZE = MSIZE[0] * TSIDE, MSIZE[1] * TSIDE
+    if WSIZE[0] > SMSIZE[0]:
+        WSIZE = SMSIZE
+        screen = pg.display.set_mode(WSIZE)
+    print(MSIZE)
+    start_pos = MSIZE[0] // 2, MSIZE[1] // 2
+    # snake = [randxy_st(toint=True)]
+
     if _apples:
         apples = _apples.split("|")
     else:
@@ -140,7 +154,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         stone_add = "|".join([randxy_st() for i in range(stones_count)])
     teleports = [randxy_st() for i in range(teleports_count)]
     # start_pos = tuple(map(int, xy.split("/")))
-    snake = [start_pos] * start_length
+    snake = [randxy_st(toint=True)] * start_length
     pg.display.set_caption("Snake client: " + name + f" ({color})")
     print("sanke", snake)
     send_my_data()
@@ -167,7 +181,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
                         direction = 0
-                        snake = [(MSIZE[0] // 2, MSIZE[1] // 2)]
+                        snake = [randxy_st(toint=True)]
                         # apple = randxy_st()
                         alive = True
                         step_tick = start_tick

@@ -21,6 +21,7 @@ colors = ["#06B6D4", "#F97316", "#F59E0B", "#FACC15", "#84CC16", "#22C55E", "#10
 busy_names = {}
 name_color = {name: color for name, color in zip(names, colors)}
 players = {}
+map_size = "0"
 # apple = "-1,-1"
 apples = set()
 main_apple = set()
@@ -60,7 +61,7 @@ def get_data_stones():
 
 
 def read(conn, mask):
-    global apples, main_apple
+    global apples, main_apple, map_size
     try:
         data = conn.recv(SIZE_DATA)
     except ConnectionResetError or ConnectionAbortedError:
@@ -71,11 +72,13 @@ def read(conn, mask):
         if st == "start":
             # name, color, 'x/y'
             player = (get_free_name(), name_color[get_free_name()], str(len(players) * 2) + "/" + str(0))
-            out = ("connected;" + ";".join(player) + ";" + get_data_map()).encode()
+            out = ("connected;" + ";".join(player) + ";" + map_size + ";" + get_data_map()).encode()
             print("Player start. out:", out)
             conn.send(out)
             busy_names[conn] = player[0]
             players[conn] = player
+        elif st.split(";")[0] == "MSIZE":
+            map_size = st.split(";")[1]
         else:
             print("Player", main_apple, st.split(";"))
             name, color, alive, apple_add, apple_eated, stone_add, poses = st.split(";")[:7]
