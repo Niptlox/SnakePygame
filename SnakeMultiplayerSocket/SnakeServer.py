@@ -6,7 +6,7 @@ import selectors
 
 # HOST = "localhost"
 # PORT = 9090
-with open(os.getcwd() + "\settings", "r") as f:
+with open(os.getcwd() + "\settings.txt", "r") as f:
     client_host = f.readline().replace("\n", "")
     HOST = f.readline().replace("\n", "")
     PORT = int(f.readline())

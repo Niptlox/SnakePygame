@@ -6,7 +6,7 @@ import socket
 
 # HOST = "192.168.1.11"
 # PORT = 9090
-with open(os.getcwd() + "\settings", "r") as f:
+with open(os.getcwd() + "\settings.txt", "r") as f:
     HOST = f.readline().replace("\n", "")
     server_host = f.readline().replace("\n", "")
     PORT = int(f.readline())
@@ -15,9 +15,8 @@ with open(os.getcwd() + "\settings", "r") as f:
 # HOST = "localhost"
 SIZE_DATA = 1024 * 32
 
-
 # SnakeSocketClient-old.py
-# pyinstaller SnakeMultiplayerSocket\SnakeMultiplayer.py --noconsole --onefile -n SnakeOnline
+# pyinstaller SnakeMultiplayerSocket\SnakeClient.py --noconsole --onefile -n SnakeOnline
 
 def randxy():
     return random.randint(0, MSIZE[0] - 1), random.randint(0, MSIZE[1] - 1)
@@ -133,12 +132,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             if not apple:
                 continue
             ax, ay = map(int, apple.split(","))
-            pg.draw.rect(screen, "red", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE,
-                                         int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE,
-                                         TSIDE, TSIDE))
-        [pg.draw.rect(screen, color, (int(x * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE,
-                                      int(y * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE,
-                                      TSIDE - 1, TSIDE - 1)) for x, y in snake]
+            pg.draw.rect(screen, "red", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
+                                         int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                         TSIDE - 2, TSIDE - 2))
+        [pg.draw.rect(screen, color, (int(x * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
+                                      int(y * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                      TSIDE - 2, TSIDE - 2)) for x, y in snake]
         # print("players", players)
         all_poses = []
 
@@ -149,7 +148,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             if player[0] == name:
                 continue
             all_poses += player_poses
-            [pg.draw.rect(screen, player[1], (int(x) * TSIDE, int(y) * TSIDE, TSIDE - 1, TSIDE - 1)) for x, y in
+            [pg.draw.rect(screen, player[1], (int(x * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
+                                              int(y * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                              TSIDE - 2, TSIDE - 2)) for x, y in
              player_poses]
         tx, ty = WSIZE[0] - 150, 5
         screen.blit(font_2.render(f"Dashboard", True, "white"), (tx, ty))
