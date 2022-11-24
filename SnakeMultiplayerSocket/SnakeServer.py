@@ -24,6 +24,7 @@ players = {}
 # apple = "-1,-1"
 apples = set()
 main_apple = set()
+stones = set()
 
 sel = selectors.DefaultSelector()
 
@@ -46,12 +47,16 @@ def accept(sock, mask):
 
 def get_data_map():
     print(list(players.values()))
-    return f"{get_data_apples()};" + "|".join(
+    return f"{get_data_apples()};{get_data_stones()};" + "|".join(
         [f"{name},{color},{poses}" for name, color, poses in players.values()]) + ";"
 
 
 def get_data_apples():
     return "|".join([xy for xy in apples])
+
+
+def get_data_stones():
+    return "|".join([xy for xy in stones])
 
 
 def read(conn, mask):
@@ -72,8 +77,11 @@ def read(conn, mask):
             busy_names[conn] = player[0]
             players[conn] = player
         else:
-            print("Player", main_apple, st)
-            name, color, alive, apple_add, apple_eated, poses = st.split(";")[:6]
+            print("Player", main_apple, st.split(";"))
+            name, color, alive, apple_add, apple_eated, stone_add, poses = st.split(";")[:7]
+            if stone_add != "0":
+                for stone in stone_add.split("|"):
+                    stones.add(stone)
             if apple_eated != "0":
                 apples.remove(apple_eated)
             if apple_add != "0":

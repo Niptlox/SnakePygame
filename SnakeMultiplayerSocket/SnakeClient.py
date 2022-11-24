@@ -15,21 +15,26 @@ with open(os.getcwd() + "\settings.txt", "r") as f:
 # HOST = "localhost"
 SIZE_DATA = 1024 * 32
 
+
 # SnakeSocketClient-old.py
 # pyinstaller SnakeMultiplayerSocket\SnakeClient.py --noconsole --onefile -n SnakeOnline
 
-def randxy():
-    return random.randint(0, MSIZE[0] - 1), random.randint(0, MSIZE[1] - 1)
+def randxy_st():
+    pos = f"{random.randint(0, MSIZE[0] - 1)},{random.randint(0, MSIZE[1] - 1)}"
+    while pos in apples or pos in stones:
+        pos = f"{random.randint(0, MSIZE[0] - 1)},{random.randint(0, MSIZE[1] - 1)}"
+    return pos
 
 
 def send_my_data():
-    global apple_eated, apple_add
+    global apple_eated, apple_add, stone_add
     poses = "*".join([f"{x}/{y}" for x, y in snake])
-    out = f"{name};{color};{int(alive)};{apple_add};{apple_eated};{poses};".encode()
+    out = f"{name};{color};{int(alive)};{apple_add};{apple_eated};{stone_add};{poses};".encode()
     # print("SEND", out)
     sock.send(out)
     apple_eated = "0"
     apple_add = "0"
+    stone_add = "0"
 
 
 SMOOTH_CAMERA = True
@@ -48,12 +53,20 @@ snake = [start_pos]
 alive = True
 immortal = "i" in flags
 start_length = 20 if "l" in flags else 1
-# apple = randxy()
+# apple = randxy_st()
 scroll = [0, 0]
 
 main_apples_count = 15
+stones_count = 45
+
+
+
 apple_eated = "0"
 apple_add = "0"
+stone_add = "0"
+stones = []
+apples = []
+
 last_step_tick = 0
 start_tick = 50 if "s" in flags else 220
 step_tick = start_tick
@@ -74,12 +87,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     data = sock.recv(SIZE_DATA)
     data_lst = data.decode().split(";")[:-1]
     print("init", data_lst)
-    _, name, color, xy, _apples, _players = data_lst
+    _, name, color, xy, _apples, _stones, _players = data_lst
     if _apples:
         apples = _apples.split("|")
     else:
-        apple_add = "|".join([",".join(map(str, randxy())) for i in range(main_apples_count)])
         apples = []
+        apple_add = "|".join([randxy_st() for i in range(main_apples_count)])
+    if _stones:
+        stones = _stones.split("|")
+    else:
+        stones = []
+        stone_add = "|".join([randxy_st() for i in range(stones_count)])
+
     # start_pos = tuple(map(int, xy.split("/")))
     snake = [start_pos] * start_length
     pg.display.set_caption("Client: " + name + f" ({color})")
@@ -110,7 +129,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     if event.key == pg.K_SPACE:
                         direction = 0
                         snake = [(MSIZE[0] // 2, MSIZE[1] // 2)]
-                        # apple = randxy()
+                        # apple = randxy_st()
                         alive = True
                         step_tick = start_tick
         print(apples)
@@ -133,6 +152,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 continue
             ax, ay = map(int, apple.split(","))
             pg.draw.rect(screen, "red", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
+                                         int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                         TSIDE - 2, TSIDE - 2))
+        for stone in stones:
+            if not stone:
+                continue
+            ax, ay = map(int, stone.split(","))
+            pg.draw.rect(screen, "gray", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
                                          int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
                                          TSIDE - 2, TSIDE - 2))
         [pg.draw.rect(screen, color, (int(x * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
@@ -168,7 +194,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 last_step_tick = pg.time.get_ticks()
                 new_pos = snake[0][0] + directions[direction][0], snake[0][1] + directions[direction][1]
                 if pg.key.get_pressed()[pg.K_r]:
-                    new_pos = randxy()
+                    new_pos = random.randint(0, MSIZE[0] - 1), random.randint(0, MSIZE[1] - 1)
                 if INFINITY_MAP:
                     snake_teleported = True
                     if new_pos[0] >= MSIZE[0]:
@@ -181,20 +207,20 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         new_pos = (new_pos[0], MSIZE[1] - 1)
                     else:
                         snake_teleported = False
-
-                if new_pos in snake or new_pos in all_poses or \
+                st_pos = ",".join(map(str, new_pos))
+                if new_pos in snake or new_pos in all_poses or st_pos in stones or \
                         not (0 <= new_pos[0] < MSIZE[0] and 0 <= new_pos[1] < MSIZE[1]):
                     if not immortal:
                         alive = False
                         # apple_add = ",".join(map(str, new_pos))
                         apple_add = "!".join([",".join(map(str, snake[i])) for i in range(len(snake)) if i % 2 == 0])
                 else:
-                    st_pos = ",".join(map(str, new_pos))
+
                     print("apples", apples)
                     if st_pos in apples:
                         snake.append((0, 0))
                         apple_eated = st_pos
-                        apple_add = ",".join(map(str, randxy()))
+                        apple_add = randxy_st()
                         fps += 1
                         step_tick = max(50, step_tick - step_tick // 25)
                     snake.insert(0, new_pos)
@@ -218,7 +244,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         ar_data = data[i:i2].split(";")
         print("update:", ar_data, "****")
         apples = ar_data[1].split("|") if ar_data[1] else []
-        if ar_data[2]:
-            players = [pl.split(",") for pl in ar_data[2].split("|")]
+        stones = ar_data[2].split("|") if ar_data[2] else []
+        if ar_data[3]:
+            players = [pl.split(",") for pl in ar_data[3].split("|")]
         else:
             players = []
