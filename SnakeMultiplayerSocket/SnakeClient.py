@@ -7,17 +7,54 @@ import socket
 # HOST = "192.168.1.11"
 # PORT = 9090
 with open(os.getcwd() + "\settings.txt", "r") as f:
-    HOST = f.readline().replace("\n", "")
-    server_host = f.readline().replace("\n", "")
-    PORT = int(f.readline())
-    wsize = tuple(map(int, f.readline().split(",")))
-    flags = f.readline()
+    HOST = f.readline().replace("\n", "").split()[1]
+    server_host = f.readline().replace("\n", "").split()[1]
+    PORT = int(f.readline().split()[1])
+    wsize = tuple(map(int, f.readline().split()[1].split(",")))
+    flags = f.readline().split()[1]
+
 # HOST = "localhost"
 SIZE_DATA = 1024 * 32
 
-
 # SnakeSocketClient-old.py
-# pyinstaller SnakeMultiplayerSocket\SnakeClient.py --noconsole --onefile -n SnakeOnline
+# pyinstaller SnakeMultiplayerSocket\SnakeClient.py --noconsole --onefile -n SnakeClient
+
+pg.init()
+WSIZE = wsize
+screen = pg.display.set_mode(WSIZE)
+clock = pg.time.Clock()
+
+background_color = "#27272A"
+font_end = pg.font.SysFont("Arial", 50)
+font_2 = pg.font.SysFont("Arial", 20)
+font_score = pg.font.SysFont("Arial", 24, bold=True)
+font_board = pg.font.SysFont("Arial", 18)
+font_myboard = pg.font.SysFont("Arial", 18, bold=True)
+
+font_start = pg.font.SysFont("Arial", 85)
+font_data = pg.font.SysFont("Arial", 19)
+
+
+def start_menu_loop():
+    global running
+    running = True
+    screen.fill(background_color)
+    draw_help()
+    text = font_data.render(f"Server: {HOST}:{PORT}", True, "white")
+    screen.blit(text, (10, 5))
+    text = font_start.render("SNAKE online", True, "#16A34A")
+    screen.blit(text, (WSIZE[0] // 2 - text.get_width() // 2, WSIZE[1] // 2 - text.get_height() // 2))
+    text = font_2.render("Press any key for start", True, "white")
+    screen.blit(text, (WSIZE[0] // 2 - text.get_width() // 2, WSIZE[1] // 2 + 50))
+    pg.display.flip()
+    while running:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                exit()
+            elif event.type == pg.KEYDOWN:
+                running = False
+
 
 def randxy_st():
     pos = f"{random.randint(0, MSIZE[0] - 1)},{random.randint(0, MSIZE[1] - 1)}"
@@ -37,11 +74,22 @@ def send_my_data():
     stone_add = "0"
 
 
+def draw_help():
+    x, y = 7, WSIZE[1] - 100
+    pg.draw.rect(screen, "red", (1+x, y+1, TSIDE-4, TSIDE-4))
+    screen.blit(font_data.render("- Apple", True, "white"), (x+TSIDE + 5, y+0))
+    y += TSIDE + 2
+    pg.draw.rect(screen, "purple", (1+x, 1+y, TSIDE-4, TSIDE-4))
+    screen.blit(font_data.render("- Teleport", True, "white"), (x+TSIDE + 5, y+0))
+    y += TSIDE + 2
+    pg.draw.rect(screen, "gray", (1+x, 1+y, TSIDE-4, TSIDE-4))
+    screen.blit(font_data.render("- Stone", True, "white"), (x+TSIDE + 5, y+0))
+
+
 SMOOTH_CAMERA = True
 INFINITY_MAP = True
 snake_teleported = False
 TSIDE = 30
-WSIZE = wsize
 MSIZE = WSIZE[0] // TSIDE * 2, WSIZE[1] // TSIDE * 2
 SMSIZE = MSIZE[0] * TSIDE, MSIZE[1] * TSIDE
 print(MSIZE)
@@ -70,16 +118,8 @@ teleports = []
 last_step_tick = 0
 start_tick = 50 if "s" in flags else 220
 step_tick = start_tick
-pg.init()
-screen = pg.display.set_mode(WSIZE)
-clock = pg.time.Clock()
-fps = 4
 
-font_end = pg.font.SysFont("Arial", 50)
-font_2 = pg.font.SysFont("Arial", 20)
-font_score = pg.font.SysFont("Arial", 25)
-font_board = pg.font.SysFont("Arial", 18)
-font_myboard = pg.font.SysFont("Arial", 18, bold=True)
+start_menu_loop()
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.connect((HOST, PORT))
@@ -101,7 +141,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     teleports = [randxy_st() for i in range(teleports_count)]
     # start_pos = tuple(map(int, xy.split("/")))
     snake = [start_pos] * start_length
-    pg.display.set_caption("Client: " + name + f" ({color})")
+    pg.display.set_caption("Snake client: " + name + f" ({color})")
     print("sanke", snake)
     send_my_data()
 
@@ -109,8 +149,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     players = []
     running = True
     while running:
-        screen.fill("#292524")
-        # clock.tick(fps)
+        screen.fill(background_color)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
@@ -159,15 +198,15 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 continue
             ax, ay = map(int, stone.split(","))
             pg.draw.rect(screen, "gray", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
-                                         int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
-                                         TSIDE - 2, TSIDE - 2))
+                                          int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                          TSIDE - 2, TSIDE - 2))
         for teleport in teleports:
             if not teleport:
                 continue
             ax, ay = map(int, teleport.split(","))
             pg.draw.rect(screen, "purple", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
-                                         int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
-                                         TSIDE - 2, TSIDE - 2))
+                                            int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                            TSIDE - 2, TSIDE - 2))
         [pg.draw.rect(screen, color, (int(x * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
                                       int(y * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
                                       TSIDE - 2, TSIDE - 2)) for x, y in snake]
@@ -231,7 +270,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                         snake.append((0, 0))
                         apple_eated = st_pos
                         apple_add = randxy_st()
-                        fps += 1
                         step_tick = max(50, step_tick - step_tick // 25)
                     snake.insert(0, new_pos)
                     snake.pop(-1)
@@ -240,8 +278,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             screen.blit(text, (WSIZE[0] // 2 - text.get_width() // 2, WSIZE[1] // 2 - 40))
             text = font_2.render("Press SPACE for restart", True, "white")
             screen.blit(text, (WSIZE[0] // 2 - text.get_width() // 2, WSIZE[1] // 2 + 20))
-        text = font_score.render("Score: " + str(len(snake)), True, "yellow")
-        screen.blit(text, (5, 5))
+        text = font_score.render("Score: " + str(len(snake)), True, "white")
+        screen.blit(text, (10, 7))
         pg.display.flip()
 
         send_my_data()

@@ -2,16 +2,16 @@ import os
 import socket
 import selectors
 
-# pyinstaller socket\SnakeServer.py --onefile -n ServerSnakeOnline
+# pyinstaller SnakeMultiplayerSocket\SnakeServer.py --onefile -n SnakeServer
 
 # HOST = "localhost"
 # PORT = 9090
 with open(os.getcwd() + "\settings.txt", "r") as f:
-    client_host = f.readline().replace("\n", "")
-    HOST = f.readline().replace("\n", "")
-    PORT = int(f.readline())
-    wsize = tuple(map(int, f.readline().split(",")))
-    flags = f.readline()
+    client_host = f.readline().replace("\n", "").split()[1]
+    HOST = f.readline().replace("\n", "").split()[1]
+    PORT = int(f.readline().split()[1])
+    wsize = tuple(map(int, f.readline().split()[1].split(",")))
+    flags = f.readline().split()[1]
 MAX_CONNECTIONS = 8
 SIZE_DATA = 1024 * 32
 STR_LEN = SIZE_DATA // 8
