@@ -58,14 +58,14 @@ scroll = [0, 0]
 
 main_apples_count = 15
 stones_count = 45
-
-
+teleports_count = 10
 
 apple_eated = "0"
 apple_add = "0"
 stone_add = "0"
 stones = []
 apples = []
+teleports = []
 
 last_step_tick = 0
 start_tick = 50 if "s" in flags else 220
@@ -98,7 +98,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     else:
         stones = []
         stone_add = "|".join([randxy_st() for i in range(stones_count)])
-
+    teleports = [randxy_st() for i in range(teleports_count)]
     # start_pos = tuple(map(int, xy.split("/")))
     snake = [start_pos] * start_length
     pg.display.set_caption("Client: " + name + f" ({color})")
@@ -109,7 +109,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     players = []
     running = True
     while running:
-        screen.fill("black")
+        screen.fill("#292524")
         # clock.tick(fps)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -146,7 +146,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         if not INFINITY_MAP:
             scroll = [min(SMSIZE[0] - WSIZE[0], max(0, scroll[0])),
                       min(SMSIZE[1] - WSIZE[1], max(0, scroll[1]))]
-        pg.draw.rect(screen, "blue", (-scroll[0], -scroll[1], SMSIZE[0], SMSIZE[1]), 2)
+        pg.draw.rect(screen, "purple", (-scroll[0], -scroll[1], SMSIZE[0], SMSIZE[1]), 2)
         for apple in apples:
             if not apple:
                 continue
@@ -159,6 +159,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 continue
             ax, ay = map(int, stone.split(","))
             pg.draw.rect(screen, "gray", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
+                                         int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
+                                         TSIDE - 2, TSIDE - 2))
+        for teleport in teleports:
+            if not teleport:
+                continue
+            ax, ay = map(int, teleport.split(","))
+            pg.draw.rect(screen, "purple", (int(ax * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
                                          int(ay * TSIDE - scroll[1] + TSIDE) % SMSIZE[1] - TSIDE + 1,
                                          TSIDE - 2, TSIDE - 2))
         [pg.draw.rect(screen, color, (int(x * TSIDE - scroll[0] + TSIDE) % SMSIZE[0] - TSIDE + 1,
@@ -208,6 +215,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     else:
                         snake_teleported = False
                 st_pos = ",".join(map(str, new_pos))
+                if st_pos in teleports:
+                    st_pos = random.choice(teleports)
+                    new_pos = tuple(map(int, st_pos.split(",")))
                 if new_pos in snake or new_pos in all_poses or st_pos in stones or \
                         not (0 <= new_pos[0] < MSIZE[0] and 0 <= new_pos[1] < MSIZE[1]):
                     if not immortal:
