@@ -16,8 +16,8 @@ with open(os.getcwd() + "\settings", "r") as f:
 SIZE_DATA = 1024 * 32
 
 
-# SnakeSocketClient.py
-# pyinstaller socket\SnakeSocketClient.py --noconsole --onefile -n SnakeOnline
+# SnakeSocketClient-old.py
+# pyinstaller SnakeMultiplayerSocket\SnakeSocketClient-old.py --noconsole --onefile -n SnakeOnline
 
 def randxy():
     return random.randint(0, MSIZE[0] - 1), random.randint(0, MSIZE[1] - 1)

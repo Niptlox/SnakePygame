@@ -2,7 +2,7 @@ import os
 import socket
 import selectors
 
-# pyinstaller socket\server.py --onefile -n ServerSnakeOnline
+# pyinstaller socket\SnakeServer.py --onefile -n ServerSnakeOnline
 
 # HOST = "localhost"
 # PORT = 9090
@@ -80,6 +80,9 @@ def read(conn, mask):
                 if "|" in apple_add:
                     for apple in apple_add.split("|"):
                         main_apple.add(apple)
+                        apples.add(apple)
+                elif "!" in apple_add:
+                    for apple in apple_add.split("!"):
                         apples.add(apple)
                 elif apple_eated in main_apple or main_apple == set():
                     if apple_eated in main_apple:

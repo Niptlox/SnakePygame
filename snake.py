@@ -26,7 +26,6 @@ font_end = pg.font.SysFont("Arial", 50)
 font_2 = pg.font.SysFont("Arial", 20)
 font_score = pg.font.SysFont("Arial", 25)
 
-
 running = True
 while running:
     screen.fill("black")
@@ -70,7 +69,7 @@ while running:
             snake.pop(-1)
     else:
         text = font_end.render("GAME OVER", True, "white")
-        screen.blit(text, (WSIZE[0] // 2 - text.get_width()//2, WSIZE[1] // 2 - 40))
+        screen.blit(text, (WSIZE[0] // 2 - text.get_width() // 2, WSIZE[1] // 2 - 40))
         text = font_2.render("Press SPACE for restart", True, "white")
         screen.blit(text, (WSIZE[0] // 2 - text.get_width() // 2, WSIZE[1] // 2 + 20))
     text = font_score.render("Score: " + str(len(snake)), True, "yellow")
