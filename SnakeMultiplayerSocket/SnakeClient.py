@@ -163,6 +163,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     players = []
     running = True
     while running:
+        elapsed_time = clock.tick(120)
         screen.fill(background_color)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -192,8 +193,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             #     scroll[0] = (sx * TSIDE - WSIZE[0] // 2)
             # if snake_teleported and (sy == 0 or sy == MSIZE[1]-1):
             #     scroll[1] = (sy * TSIDE - WSIZE[1] // 2)
-            scroll[0] += ((sx * TSIDE - WSIZE[0] // 2) - scroll[0]) / 100
-            scroll[1] += (sy * TSIDE - WSIZE[1] // 2 - scroll[1]) / 100
+            t_cof = (max(elapsed_time, 1) / 1000)
+            scroll[0] += ((sx * TSIDE - WSIZE[0] // 2) - scroll[0]) * t_cof *10
+            scroll[1] += (sy * TSIDE - WSIZE[1] // 2 - scroll[1]) * t_cof *10
+
         else:
             scroll = [(sx * TSIDE - WSIZE[0] // 2), (sy * TSIDE - WSIZE[1] // 2)]
         if not INFINITY_MAP:
