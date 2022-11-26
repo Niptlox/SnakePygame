@@ -8,10 +8,10 @@ def config_save():
         config.write(configfile)
 
 
-config_filename = os.getcwd() + '\settings.ini'
+config_filename = os.getcwd() + r'/settings.ini'
 print("config_filename", config_filename)
-with open(config_filename, "r") as f:
-    print(f.read())
+# with open(config_filename, "r") as f:
+#     print(f.read())
 config = ConfigParser()
 config.read(config_filename)
 
