@@ -10,6 +10,8 @@ def config_save():
 
 config_filename = os.getcwd() + '\settings.ini'
 print("config_filename", config_filename)
+with open(config_filename, "r") as f:
+    print(f.read())
 config = ConfigParser()
 config.read(config_filename)
 
