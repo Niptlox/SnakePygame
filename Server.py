@@ -5,7 +5,7 @@ import selectors
 import sys
 
 CONNECTION_KEY = sys.argv[1] if len(sys.argv) >= 2 else "0000"
-# pyinstaller server.py --onefile -n SnakeServer
+# pyinstaller Server.py --onefile -n SnakeServer
 
 # HOST = "localhost"
 # PORT = 9090
