@@ -3,7 +3,7 @@ from src.config import ServerCnf
 import socket
 import selectors
 
-# pyinstaller SnakeServer.py --onefile -n SnakeServer
+# pyinstaller Server.py --onefile -n SnakeServer
 
 # HOST = "localhost"
 # PORT = 9090
