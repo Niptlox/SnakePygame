@@ -3,24 +3,22 @@ import os
 import pygame as pg
 import random
 import socket
+from src.config import GameCnf, WindowCnf
 
 # HOST = "192.168.1.11"
 # PORT = 9090
-with open(os.getcwd() + "\settings.txt", "r") as f:
-    HOST = f.readline().replace("\n", "").split()[1]
-    server_host = f.readline().replace("\n", "").split()[1]
-    PORT = int(f.readline().split()[1])
-    wsize = tuple(map(int, f.readline().split()[1].split(",")))
-    flags = f.readline().split()[1]
+WSIZE = tuple(map(int, WindowCnf.WindowSize))
+FPS = WindowCnf.FPS
+HOST = GameCnf.ServerGlobal
+PORT = GameCnf.PORT
+flags = GameCnf.Flags
 
-# HOST = "localhost"
 SIZE_DATA = 1024 * 32
 
 # SnakeSocketClient-old.py
-# pyinstaller SnakeMultiplayerSocket\SnakeClient.py --noconsole --onefile -n SnakeClient
+# pyinstaller SnakeClient.py --noconsole --onefile -n SnakeClient
 
 pg.init()
-WSIZE = wsize
 screen = pg.display.set_mode(WSIZE)
 clock = pg.time.Clock()
 
@@ -163,7 +161,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     players = []
     running = True
     while running:
-        elapsed_time = clock.tick(120)
+        elapsed_time = clock.tick(FPS)
         screen.fill(background_color)
         for event in pg.event.get():
             if event.type == pg.QUIT:
