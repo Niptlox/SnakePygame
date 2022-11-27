@@ -8,11 +8,18 @@ from src.config import GameCnf, WindowCnf
 
 # HOST = "192.168.1.11"
 # PORT = 9090
+TYPE_S_GLOBAL = "ServerGlobal"
+TYPE_S_LOCAL = "ServerLocal"
 APP_KEY = sys.argv[1] if len(sys.argv) >= 2 else "0000"
 WSIZE = tuple(map(int, WindowCnf.WindowSize))
 DEBUG = GameCnf.DEBUG
 FPS = WindowCnf.FPS
-HOST = GameCnf.ServerLocal
+server_type = GameCnf.ServerType
+if server_type == TYPE_S_LOCAL:
+    HOST = GameCnf.ServerLocal
+else:
+    HOST = GameCnf.ServerGlobal
+
 PORT = GameCnf.PORT
 flags = GameCnf.Flags
 
@@ -20,6 +27,8 @@ SIZE_DATA = 1024 * 32
 
 # SnakeSocketClient-old.py
 # pyinstaller SnakeClient.py --noconsole --onefile -n SnakeClient
+
+
 
 pg.init()
 screen = pg.display.set_mode(WSIZE)
@@ -77,6 +86,24 @@ def send_my_data():
     apple_eated = "0"
     apple_add = "0"
     stone_add = "0"
+
+
+def update_server_data():
+    global players, apples
+    send_my_data()
+    data = sock.recv(SIZE_DATA).decode()
+    if not data:
+        print("ERROR NOT DATA")
+        return
+    i = data.find("update")
+    i2 = data.find("end")
+    ar_data = data[i:i2].split(";")
+    debug_print("update:", ar_data, "****")
+    apples = ar_data[1].split("|") if ar_data[1] else []
+    if ar_data[2]:
+        players = [pl.split(",") for pl in ar_data[2].split("|")]
+    else:
+        players = []
 
 
 def draw_help():
@@ -172,10 +199,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     data = sock.recv(SIZE_DATA).decode()
     players = []
     running = True
+    tick_i = 0
     while running:
         elapsed_time = clock.tick(FPS)
         if DEBUG:
-            pg.display.set_caption("FPS: " + str(int(clock.get_fps())))
+            pg.display.set_caption("FPS: " + str(int(clock.get_fps())) + f";{elapsed_time}")
         screen.fill(background_color)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -205,7 +233,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             #     scroll[0] = (sx * TSIDE - WSIZE[0] // 2)
             # if snake_teleported and (sy == 0 or sy == MSIZE[1]-1):
             #     scroll[1] = (sy * TSIDE - WSIZE[1] // 2)
-            t_cof = (max(elapsed_time, 1) / 1000)
+            t_cof = (min(100, max(elapsed_time, 1)) / 1000)
             scroll[0] += ((sx * TSIDE - WSIZE[0] // 2) - scroll[0]) * t_cof * 10
             scroll[1] += (sy * TSIDE - WSIZE[1] // 2 - scroll[1]) * t_cof * 10
 
@@ -310,18 +338,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         text = font_score.render("Score: " + str(len(snake)), True, "white")
         screen.blit(text, (10, 7))
         pg.display.flip()
+        update_server_data()
 
-        send_my_data()
-        data = sock.recv(SIZE_DATA).decode()
-        if not data:
-            print("ERROR NOT DATA")
-            continue
-        i = data.find("update")
-        i2 = data.find("end")
-        ar_data = data[i:i2].split(";")
-        debug_print("update:", ar_data, "****")
-        apples = ar_data[1].split("|") if ar_data[1] else []
-        if ar_data[2]:
-            players = [pl.split(",") for pl in ar_data[2].split("|")]
-        else:
-            players = []
+        tick_i += 1

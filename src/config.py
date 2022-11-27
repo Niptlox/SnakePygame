@@ -80,6 +80,7 @@ class WindowCnf(__Settings):
 class GameCnf(__Settings):
     section = "Game"
     DEBUG = ConfigVar(bool)
+    ServerType = ConfigVar(str)
     ServerLocal = ConfigVar(str)
     ServerGlobal = ConfigVar(str)
     PORT = ConfigVar(int)
