@@ -17,8 +17,8 @@ DEBUG = GameCnf.DEBUG
 FPS = WindowCnf.FPS
 SMOOTH_CAMERA = GameCnf.SmoothCamera
 online = GameCnf.Online
-server_type = GameCnf.ServerType
-if server_type == TYPE_S_LOCAL:
+
+if GameCnf.ServerIsLocal:
     HOST = GameCnf.ServerLocal
 else:
     HOST = GameCnf.ServerGlobal

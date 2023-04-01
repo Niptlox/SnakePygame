@@ -81,7 +81,7 @@ class GameCnf(__Settings):
     section = "Game"
     DEBUG = ConfigVar(bool)
     Online = ConfigVar(bool)
-    ServerType = ConfigVar(str)
+    ServerIsLocal = ConfigVar(bool)
     ServerLocal = ConfigVar(str)
     ServerGlobal = ConfigVar(str)
     PORT = ConfigVar(int)
